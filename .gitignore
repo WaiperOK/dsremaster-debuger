@@ -1,0 +1,55 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Intermediate files
+*.obj
+*.pch
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+*.iobj
+*.ipdb
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# IntelliSense
+*.VC.db
+*.VC.VC.opendb
+*.VC.opendb
+cpp.hint
+
+# Build logs
+*.log
+*.tlog
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# Build folders
+DarkSoul.*/
