@@ -58,23 +58,23 @@ namespace ConsoleUtils {
 
     std::string ConsoleLogger::GetLevelPrefix(LogLevel level) {
         switch (level) {
-            case LogLevel::DEBUG:   return "[DEBUG]";
-            case LogLevel::INFO:    return "[INFO]";
-            case LogLevel::WARNING: return "[WARN]";
-            case LogLevel::ERROR:   return "[ERROR]";
-            case LogLevel::SUCCESS: return "[OK]";
-            default:                return "[LOG]";
+            case LogLevel::DEBUG:       return "[DEBUG]";
+            case LogLevel::INFO:        return "[INFO]";
+            case LogLevel::WARNING:     return "[WARN]";
+            case LogLevel::ERROR_LEVEL: return "[ERROR]";
+            case LogLevel::SUCCESS:     return "[OK]";
+            default:                    return "[LOG]";
         }
     }
 
     int ConsoleLogger::GetColorForLevel(LogLevel level) {
         switch (level) {
-            case LogLevel::DEBUG:   return FOREGROUND_BLUE | FOREGROUND_INTENSITY;
-            case LogLevel::INFO:    return FOREGROUND_GREEN | FOREGROUND_BLUE;
-            case LogLevel::WARNING: return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-            case LogLevel::ERROR:   return FOREGROUND_RED | FOREGROUND_INTENSITY;
-            case LogLevel::SUCCESS: return FOREGROUND_GREEN | FOREGROUND_INTENSITY;
-            default:                return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+            case LogLevel::DEBUG:       return FOREGROUND_BLUE | FOREGROUND_INTENSITY;
+            case LogLevel::INFO:        return FOREGROUND_GREEN | FOREGROUND_BLUE;
+            case LogLevel::WARNING:     return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+            case LogLevel::ERROR_LEVEL: return FOREGROUND_RED | FOREGROUND_INTENSITY;
+            case LogLevel::SUCCESS:     return FOREGROUND_GREEN | FOREGROUND_INTENSITY;
+            default:                    return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
         }
     }
 

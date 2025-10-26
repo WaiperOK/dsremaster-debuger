@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git init)"
+      "Bash(git init)",
+      "Bash(dir /s /b \"c:\\Users\\Wrzesien\\source\\repos\\DarkSoulsDebugMenu\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: добавлены модули утилит для работы со строками и памятью\n\n- StringUtils: парсинг HEX строк, обрезка пробелов (централизованно)\n- MemoryUtils: безопасная работа с памятью, проверка доступа, RAII для защиты\n- ConsoleUtils: логирование с цветными выводами, инициализация консоли\n- MemoryManager: рефакторинг для использования новых утилит, проверка ошибок\n- Удалено неиспользуемое поле CameraCoordinates.magic\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: замена MessageBox на логирование, устранение дублирования кода\n\n- Заменены 13+ блокирующих MessageBox на консольное логирование через ConsoleUtils\n- Удалены дублирующиеся функции Trim, HexStringToAddress, HexStringToBytes\n- Все строковые утилиты теперь используют централизованный StringUtils\n- Устранена блокировка главного потока инъекции DLL во время инициализации\nEOF\n)\")",
+      "Bash(git commit -m \"$(cat <<''EOF''\nrefactor: начало разделения DebugCamera на специализированные модули\n\n- PatternScanner: поиск шаблонов в памяти с проверкой доступа страниц\n- AddressDetector: многофазное сканирование (заготовка)\n- Использование ConsoleUtils для логирования вместо std::cerr\nEOF\n)\")",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

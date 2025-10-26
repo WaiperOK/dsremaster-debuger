@@ -714,7 +714,8 @@ GameAddresses RealAutoDetectAll() {
         try {
             float* ptr = reinterpret_cast<float*>(addr);
             float x = ptr[0], y = ptr[1], z = ptr[2];
-            
+            std::string type;
+
             // Эвристика для определения типа адреса
             bool isPlayer = false;
             bool isCamera = false;

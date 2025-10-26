@@ -3,7 +3,6 @@
 #include "MemoryManager.h"
 #include "MemoryUtils.h"
 #include "ConsoleUtils.h"
-#include <windows.h>
 #include <iostream>
 #include <cstring>
 #include <cmath>
@@ -26,7 +25,7 @@ bool WriteCameraCoordinates(uintptr_t address, const CameraCoordinates& coords) 
 }
 
 CameraCoordinates ReadCameraCoordinates(uintptr_t address) {
-    CameraCoordinates coords = { 0.0f, 0.0f, 0.0f, 0 };
+    CameraCoordinates coords = { 0.0f, 0.0f, 0.0f };
 
     if (!MemoryUtils::IsPageAccessible(address, sizeof(float) * 3)) {
         ConsoleUtils::LogError("Адрес памяти недоступен для чтения: 0x" + std::to_string(address));
