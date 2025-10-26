@@ -58,17 +58,30 @@ namespace AddressDetector {
         std::vector<AddressTracker> candidates;
 
         ConsoleUtils::LogInfo("Поиск потенциальных адресов...");
+        ConsoleUtils::LogInfo("Диапазон сканирования: 0x" + std::to_string(startAddress) + " - 0x" + std::to_string(endAddress));
+
+        uintptr_t totalSize = endAddress - startAddress;
+        uintptr_t scanOffset = 0;
+
         for (uintptr_t addr = startAddress; addr < endAddress - 12; addr += 16) {
+            scanOffset = addr - startAddress;
+
+            // Показываем прогресс каждые 10% сканирования
+            if (scanOffset % (totalSize / 10) == 0) {
+                int progress = (scanOffset * 100) / totalSize;
+                ConsoleUtils::LogInfo("Сканирование: " + std::to_string(progress) + "%");
+            }
+
             if (!MemoryUtils::IsPageAccessible(addr, sizeof(float) * 3))
                 continue;
 
             try {
                 CameraCoordinates coords = ReadCameraCoordinates(addr);
 
-                constexpr float MAX_COORD = 10000.0f;
+                constexpr float MAX_COORD = 50000.0f;
+                // Более мягкие условия
                 if (std::abs(coords.x) < MAX_COORD && std::abs(coords.y) < MAX_COORD &&
-                    std::abs(coords.z) < MAX_COORD &&
-                    std::abs(coords.x) > 0.001f && std::abs(coords.y) > 0.001f && std::abs(coords.z) > 0.001f) {
+                    std::abs(coords.z) < MAX_COORD) {
 
                     AddressTracker tracker;
                     tracker.address = addr;
@@ -84,7 +97,12 @@ namespace AddressDetector {
             }
         }
 
-        ConsoleUtils::LogInfo("Найдено " + std::to_string(candidates.size()) + " кандидатов");
+        ConsoleUtils::LogSuccess("Найдено " + std::to_string(candidates.size()) + " кандидатов");
+
+        if (candidates.empty()) {
+            ConsoleUtils::LogError("Кандидаты не найдены! Попробуйте использовать команду 'scan' с собственным шаблоном");
+            return addresses;
+        }
 
         for (size_t phaseIdx = 0; phaseIdx < phases.size(); phaseIdx++) {
             const ScanPhase& phase = phases[phaseIdx];
