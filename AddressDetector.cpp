@@ -89,7 +89,7 @@ namespace AddressDetector {
         for (size_t phaseIdx = 0; phaseIdx < phases.size(); phaseIdx++) {
             const ScanPhase& phase = phases[phaseIdx];
 
-            ConsoleUtils::LogInfo(phase.name + " (" + std::to_string(phase.duration) + " сек)");
+            ConsoleUtils::LogInfo("[" + std::to_string(phaseIdx + 1) + "/" + std::to_string(phases.size()) + "] " + phase.name + " (" + std::to_string(phase.duration) + " сек)");
             ConsoleUtils::LogInfo("ИНСТРУКЦИЯ: " + phase.instruction);
             ConsoleUtils::LogInfo("Подготовьтесь... начинаем через 3 сек");
             Sleep(3000);
@@ -110,7 +110,14 @@ namespace AddressDetector {
 
             for (int snapshot = 0; snapshot < SNAPSHOTS_PER_PHASE; snapshot++) {
                 Sleep(SLEEP_MS);
-                std::cout << "•";
+
+                // Прогресс-бар
+                int progress = (snapshot + 1) * 100 / SNAPSHOTS_PER_PHASE;
+                std::cout << "\r[";
+                for (int i = 0; i < 30; i++) {
+                    std::cout << (i < progress / 3 ? "=" : " ");
+                }
+                std::cout << "] " << progress << "%";
                 std::cout.flush();
 
                 for (auto& candidate : candidates) {
@@ -138,7 +145,8 @@ namespace AddressDetector {
                 }
             }
 
-            std::cout << " ЗАВЕРШЕНО" << std::endl;
+            std::cout << "\n";
+            ConsoleUtils::LogSuccess("ФАЗА " + std::to_string(phaseIdx + 1) + " ЗАВЕРШЕНА");
         }
 
         ConsoleUtils::LogInfo("Анализ результатов сканирования...");

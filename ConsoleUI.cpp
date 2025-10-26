@@ -53,16 +53,16 @@ namespace ConsoleUI {
 
     void ConsoleMenu::DisplayMenu() {
         ConsoleUtils::LogSuccess("Доступные команды:");
-        std::cout << "  showpos    - показать координаты камеры" << std::endl;
-        std::cout << "  setpos     - установить координаты камеры" << std::endl;
-        std::cout << "  addpos     - добавить смещение к координатам" << std::endl;
-        std::cout << "  pattern    - установить новый шаблон поиска" << std::endl;
-        std::cout << "  showpattern - показать текущий шаблон" << std::endl;
-        std::cout << "  scan       - сканировать с текущим шаблоном" << std::endl;
-        std::cout << "  autoscan   - автоматическое многофазное сканирование" << std::endl;
-        std::cout << "  list       - показать найденные адреса" << std::endl;
-        std::cout << "  help       - справка" << std::endl;
-        std::cout << "  exit       - выход" << std::endl;
+        std::cout << "  1  showpos     - показать координаты камеры" << std::endl;
+        std::cout << "  2  setpos      - установить координаты камеры" << std::endl;
+        std::cout << "  3  addpos      - добавить смещение к координатам" << std::endl;
+        std::cout << "  4  pattern     - установить новый шаблон поиска" << std::endl;
+        std::cout << "  5  showpattern - показать текущий шаблон" << std::endl;
+        std::cout << "  6  scan        - сканировать с текущим шаблоном" << std::endl;
+        std::cout << "  7  autoscan    - автоматическое многофазное сканирование" << std::endl;
+        std::cout << "  8  list        - показать найденные адреса" << std::endl;
+        std::cout << "  9  help        - справка" << std::endl;
+        std::cout << "  0  exit        - выход" << std::endl;
     }
 
     void ConsoleMenu::ProcessCommand(const std::string& command) {
@@ -70,24 +70,28 @@ namespace ConsoleUI {
         std::string cmd;
         iss >> cmd;
 
-        if (cmd == "showpos") {
+        // Поддержка обоих форматов: имя команды или цифра
+        if (cmd == "showpos" || cmd == "1") {
             CmdShowPos();
-        } else if (cmd == "setpos") {
+        } else if (cmd == "setpos" || cmd == "2") {
             CmdSetPos();
-        } else if (cmd == "addpos") {
+        } else if (cmd == "addpos" || cmd == "3") {
             CmdAddPos();
-        } else if (cmd == "pattern") {
+        } else if (cmd == "pattern" || cmd == "4") {
             CmdPattern();
-        } else if (cmd == "showpattern") {
+        } else if (cmd == "showpattern" || cmd == "5") {
             CmdShowPattern();
-        } else if (cmd == "scan") {
+        } else if (cmd == "scan" || cmd == "6") {
             CmdScan();
-        } else if (cmd == "autoscan") {
+        } else if (cmd == "autoscan" || cmd == "7") {
             CmdAutoScan();
-        } else if (cmd == "list") {
+        } else if (cmd == "list" || cmd == "8") {
             CmdList();
-        } else if (cmd == "help") {
+        } else if (cmd == "help" || cmd == "9") {
             CmdHelp();
+        } else if (cmd == "exit" || cmd == "0") {
+            ConsoleUtils::LogSuccess("Выход из программы");
+            exit(0);
         } else {
             ConsoleUtils::LogWarning("Неизвестная команда: " + cmd);
             DisplayMenu();
