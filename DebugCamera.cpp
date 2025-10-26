@@ -6,6 +6,8 @@
 #include "MemoryUtils.h"
 #include "ConsoleUtils.h"
 #include "ConsoleUI.h"
+#include "AddressDetector.h"
+#include "PatternScanner.h"
 
 #include <windows.h>
 #include <psapi.h>        // Для GetModuleInformation
@@ -61,44 +63,11 @@ bool ReadThreeFloats(float& x, float& y, float& z) {
 }
 
 
-// Сканирует память указанного модуля в поиске шаблона с заданной маской,
-// возвращая все найденные адреса.
-std::vector<uintptr_t> FindAllPatterns(HMODULE hModule, const char* pattern, const char* mask) {
-    std::vector<uintptr_t> addresses;
-    MODULEINFO moduleInfo;
-    if (!GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo))) {
-        std::cerr << "Не удалось получить информацию о модуле." << std::endl;
-        return addresses;
-    }
-    uintptr_t startAddress = reinterpret_cast<uintptr_t>(moduleInfo.lpBaseOfDll);
-    uintptr_t endAddress = startAddress + moduleInfo.SizeOfImage;
-    size_t patternLength = strlen(mask);
-
-    for (uintptr_t current = startAddress; current < endAddress - patternLength; current++) {
-        bool found = true;
-        for (size_t i = 0; i < patternLength; i++) {
-            if (mask[i] == 'x' && *reinterpret_cast<char*>(current + i) != pattern[i]) {
-                found = false;
-                break;
-            }
-        }
-        if (found)
-            addresses.push_back(current);
-    }
-    return addresses;
-}
-
 // Структура для отслеживания изменений значений
 struct MemorySnapshot {
     uintptr_t address;
     float values[3];
     int changeCount;
-};
-
-// Структура для хранения найденных адресов персонажа и камеры
-struct GameAddresses {
-    std::vector<uintptr_t> playerAddresses;
-    std::vector<uintptr_t> cameraAddresses;
 };
 
 // Многократное сканирование для точного определения типа адреса

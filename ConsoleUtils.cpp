@@ -141,7 +141,7 @@ namespace ConsoleUtils {
     }
 
     void LogError(const std::string& message) {
-        Logger().Log(LogLevel::ERROR, message);
+        Logger().Log(LogLevel::ERROR_LEVEL, message);
     }
 
     void LogSuccess(const std::string& message) {

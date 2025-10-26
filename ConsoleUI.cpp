@@ -12,8 +12,9 @@
 
 namespace ConsoleUI {
 
-    ConsoleMenu::ConsoleMenu()
-        : selectedCameraAddress(0), selectedPlayerAddress(0) {
+    ConsoleMenu::ConsoleMenu() {
+        context.selectedCameraAddress = 0;
+        context.selectedPlayerAddress = 0;
         context.currentPattern = "\x00\x00\x80\x3F\x00\x00\x00\x40\x00\x00\x40\x40";
         context.currentMask = "xxxxxxxxxxxx";
     }
