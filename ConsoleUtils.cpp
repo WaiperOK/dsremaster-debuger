@@ -111,8 +111,19 @@ namespace ConsoleUtils {
         std::ostringstream oss;
         oss << std::put_time(&buf, "%H:%M:%S") << " " << GetLevelPrefix(level) << " " << message;
 
+        std::string output = oss.str();
+
         SetColor(GetColorForLevel(level));
-        std::cout << oss.str() << std::endl;
+
+        // Вывод через WriteConsoleA с правильной обработкой кодировки
+        if (hConsole != NULL && hConsole != INVALID_HANDLE_VALUE) {
+            DWORD charsWritten;
+            output += "\n";
+            WriteConsoleA(hConsole, output.c_str(), (DWORD)output.length(), &charsWritten, NULL);
+        } else {
+            std::cout << output << std::endl;
+        }
+
         ResetColor();
     }
 
@@ -155,5 +166,26 @@ namespace ConsoleUtils {
 
     void LogSuccess(const std::string& message) {
         Logger().Log(LogLevel::SUCCESS, message);
+    }
+
+    void WriteToConsole(const std::string& message) {
+        HANDLE hConsole = Logger().GetConsoleHandle();
+        if (hConsole != NULL && hConsole != INVALID_HANDLE_VALUE) {
+            DWORD charsWritten;
+            WriteConsoleA(hConsole, message.c_str(), (DWORD)message.length(), &charsWritten, NULL);
+        } else {
+            std::cout << message;
+        }
+    }
+
+    void WriteLineToConsole(const std::string& message) {
+        HANDLE hConsole = Logger().GetConsoleHandle();
+        std::string output = message + "\n";
+        if (hConsole != NULL && hConsole != INVALID_HANDLE_VALUE) {
+            DWORD charsWritten;
+            WriteConsoleA(hConsole, output.c_str(), (DWORD)output.length(), &charsWritten, NULL);
+        } else {
+            std::cout << output;
+        }
     }
 }

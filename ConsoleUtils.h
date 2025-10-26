@@ -26,6 +26,8 @@ public:
     void SetColor(int colorCode);
     void ResetColor();
 
+    HANDLE GetConsoleHandle() const { return hConsole; }
+
 private:
     ConsoleLogger();
     ~ConsoleLogger();
@@ -50,5 +52,7 @@ void LogInfo(const std::string& message);
 void LogWarning(const std::string& message);
 void LogError(const std::string& message);
 void LogSuccess(const std::string& message);
+void WriteToConsole(const std::string& message);
+void WriteLineToConsole(const std::string& message);
 
 } // namespace ConsoleUtils
