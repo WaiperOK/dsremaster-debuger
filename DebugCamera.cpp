@@ -2,8 +2,6 @@
 #include "pch.h"
 #include "DebugCamera.h"
 #include "MemoryManager.h"
-#include "StringUtils.h"
-#include "MemoryUtils.h"
 #include "ConsoleUtils.h"
 #include "ConsoleUI.h"
 #include "AddressDetector.h"
@@ -763,50 +761,6 @@ GameAddresses RealAutoDetectAll() {
 }
 
 // Автоматический поиск камеры (для обратной совместимости)
-std::vector<uintptr_t> AutoDetectCameraAddresses() {
-    GameAddresses addresses = RealAutoDetectAll();
-    std::vector<uintptr_t> combined;
-    
-    // Объединяем адреса персонажа и камеры
-    combined.insert(combined.end(), addresses.playerAddresses.begin(), addresses.playerAddresses.end());
-    combined.insert(combined.end(), addresses.cameraAddresses.begin(), addresses.cameraAddresses.end());
-    
-    return combined;
-}
-
-// Ищет адреса камеры с использованием заданного шаблона и маски.
-// Возвращает вектор найденных адресов.
-std::vector<uintptr_t> FindCameraAddresses(const std::string& currentPattern, const std::string& currentMask) {
-    HMODULE hModule = GetModuleHandle(nullptr);
-    std::vector<uintptr_t> addresses;
-    if (!hModule) {
-        std::cerr << "Не удалось получить дескриптор модуля." << std::endl;
-        return addresses;
-    }
-    addresses = FindAllPatterns(hModule, currentPattern.c_str(), currentMask.c_str());
-    if (addresses.empty())
-        std::cerr << "Не удалось найти адреса камеры по заданному шаблону." << std::endl;
-    else {
-        // Фильтруем найденные адреса, оставляя только те, где значение magic соответствует 0x12345678.
-        std::vector<uintptr_t> validAddresses;
-        for (auto addr : addresses) {
-            if (IsValidCameraAddress(addr))
-                validAddresses.push_back(addr);
-        }
-        if (validAddresses.empty())
-            std::cerr << "Не найдено допустимых адресов камеры." << std::endl;
-        else {
-            std::cout << "Найдены допустимые адреса камеры (показаны первые 3):" << std::endl;
-            for (size_t i = 0; i < std::min(validAddresses.size(), size_t(3)); i++) {
-                std::cout << "0x" << std::hex << validAddresses[i] << " ";
-            }
-            std::cout << std::endl;
-        }
-        return validAddresses;
-    }
-    return addresses;
-}
-
 CDebugCamera::CDebugCamera() {
     // Дополнительная инициализация, если требуется.
 }
