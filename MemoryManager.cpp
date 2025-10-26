@@ -1,64 +1,64 @@
 
 #include "pch.h"
 #include "MemoryManager.h"
+#include "MemoryUtils.h"
+#include "ConsoleUtils.h"
 #include <windows.h>
 #include <iostream>
 #include <cstring>
+#include <cmath>
 
 #undef min
 #undef max
 
-void WriteCameraCoordinates(uintptr_t address, const CameraCoordinates& coords) {
-    DWORD oldProtect;
-    if (VirtualProtect(reinterpret_cast<LPVOID>(address), 12, PAGE_EXECUTE_READWRITE, &oldProtect)) {
-        try {
-            float* ptr = reinterpret_cast<float*>(address);
-            ptr[0] = coords.x;
-            ptr[1] = coords.y;
-            ptr[2] = coords.z;
-        }
-        catch (...) {
-            std::cerr << "Failed to write coordinates at address: 0x" << std::hex << address << std::endl;
-        }
-        VirtualProtect(reinterpret_cast<LPVOID>(address), 12, oldProtect, &oldProtect);
+bool WriteCameraCoordinates(uintptr_t address, const CameraCoordinates& coords) {
+    if (!MemoryUtils::IsPageAccessible(address, sizeof(CameraCoordinates))) {
+        ConsoleUtils::LogError("Адрес памяти недоступен: 0x" + std::to_string(address));
+        return false;
     }
-    else {
-        std::cerr << "Failed to change memory protection at address: 0x"
-            << std::hex << address << std::endl;
+
+    if (!MemoryUtils::SafeWriteMemory(address, &coords, sizeof(float) * 3)) {
+        ConsoleUtils::LogError("Не удалось записать координаты: 0x" + std::to_string(address));
+        return false;
     }
+
+    return true;
 }
 
 CameraCoordinates ReadCameraCoordinates(uintptr_t address) {
     CameraCoordinates coords = { 0.0f, 0.0f, 0.0f, 0 };
-    try {
-        float* ptr = reinterpret_cast<float*>(address);
-        coords.x = ptr[0];
-        coords.y = ptr[1];
-        coords.z = ptr[2];
-        coords.magic = 0; // Не используем magic
+
+    if (!MemoryUtils::IsPageAccessible(address, sizeof(float) * 3)) {
+        ConsoleUtils::LogError("Адрес памяти недоступен для чтения: 0x" + std::to_string(address));
+        return coords;
     }
-    catch (...) {
-        std::cerr << "Failed to read coordinates at address: 0x" << std::hex << address << std::endl;
+
+    if (!MemoryUtils::SafeReadMemory(address, &coords, sizeof(float) * 3)) {
+        ConsoleUtils::LogError("Не удалось прочитать координаты: 0x" + std::to_string(address));
+        return coords;
     }
+
     return coords;
 }
 
-void AddCameraCoordinates(uintptr_t address, const CameraCoordinates& offset) {
+bool AddCameraCoordinates(uintptr_t address, const CameraCoordinates& offset) {
     CameraCoordinates coords = ReadCameraCoordinates(address);
     coords.x += offset.x;
     coords.y += offset.y;
     coords.z += offset.z;
-    WriteCameraCoordinates(address, coords);
+    return WriteCameraCoordinates(address, coords);
 }
 
 bool IsValidCameraAddress(uintptr_t address) {
-    try {
-        float* ptr = reinterpret_cast<float*>(address);
-        // Проверяем, что значения находятся в разумных пределах для координат
-        return (abs(ptr[0]) < 10000.0f && abs(ptr[1]) < 10000.0f && abs(ptr[2]) < 10000.0f &&
-                ptr[0] != 0.0f && ptr[1] != 0.0f && ptr[2] != 0.0f);
-    }
-    catch (...) {
+    if (!MemoryUtils::IsPageAccessible(address, sizeof(float) * 3)) {
         return false;
     }
+
+    CameraCoordinates coords = ReadCameraCoordinates(address);
+
+    constexpr float MAX_COORD = 10000.0f;
+    constexpr float MIN_DEVIATION = 0.001f;
+
+    return (std::abs(coords.x) < MAX_COORD && std::abs(coords.y) < MAX_COORD && std::abs(coords.z) < MAX_COORD &&
+            std::abs(coords.x) > MIN_DEVIATION && std::abs(coords.y) > MIN_DEVIATION && std::abs(coords.z) > MIN_DEVIATION);
 }
