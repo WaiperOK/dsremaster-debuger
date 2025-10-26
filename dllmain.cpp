@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include <windows.h>
 #include <iostream>
-#include "DebugMenu.h"
+#include "DebugCamera.h"
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
