@@ -1,18 +1,9 @@
-#include "pch.h"           // Если используется precompiled header
+#include "pch.h"
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <windows.h>
-
-// Функция для удаления пробелов в начале и конце строки
-std::string Trim(const std::string& str) {
-    const std::string whitespace = " \t\n\r";
-    size_t start = str.find_first_not_of(whitespace);
-    if (start == std::string::npos)
-        return "";
-    size_t end = str.find_last_not_of(whitespace);
-    return str.substr(start, end - start + 1);
-}
+#include "StringUtils.h"
 
 int main() {
     while (true) {
@@ -20,12 +11,12 @@ int main() {
         std::cout << "Enter command ('showpos', 'setpos', 'addpos', 'pattern', 'showpattern', 'scan' or 'exit'): ";
         if (!std::getline(std::cin, input)) {
             std::cout << "No input received. Retrying..." << std::endl;
-            Sleep(100); // Задержка 100 мс
+            Sleep(100); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 100 пїЅпїЅ
             continue;
         }
-        std::string trimmed = Trim(input);
+        std::string trimmed = StringUtils::Trim(input);
 
-        // Диагностический вывод полученной строки
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         std::cout << "Input: \"" << trimmed << "\"" << std::endl;
 
         if (trimmed == "exit")
@@ -41,30 +32,30 @@ int main() {
         std::string command;
         iss >> command;
 
-        // Обработка команд (пример обработки)
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)
         if (command == "showpos") {
             std::cout << "Command 'showpos' received." << std::endl;
-            // Здесь должен быть код для вывода позиции
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
         else if (command == "setpos") {
             std::cout << "Command 'setpos' received." << std::endl;
-            // Здесь должен быть код для установки новой позиции
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
         else if (command == "addpos") {
             std::cout << "Command 'addpos' received." << std::endl;
-            // Здесь должен быть код для добавления смещения
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         }
         else if (command == "pattern") {
             std::cout << "Command 'pattern' received." << std::endl;
-            // Здесь должен быть код для задания нового паттерна и маски
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
         }
         else if (command == "showpattern") {
             std::cout << "Command 'showpattern' received." << std::endl;
-            // Здесь должен быть код для вывода текущего паттерна и маски
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ
         }
         else if (command == "scan") {
             std::cout << "Command 'scan' received." << std::endl;
-            // Здесь должен быть код для пересканирования памяти
+            // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         }
         else {
             std::cout << "Invalid command. Use 'showpos', 'setpos', 'addpos', 'pattern', 'showpattern', 'scan' or 'exit'." << std::endl;

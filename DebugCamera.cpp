@@ -2,6 +2,9 @@
 #include "pch.h"
 #include "DebugCamera.h"
 #include "MemoryManager.h"
+#include "StringUtils.h"
+#include "MemoryUtils.h"
+#include "ConsoleUtils.h"
 
 #include <windows.h>
 #include <psapi.h>        // Для GetModuleInformation
@@ -25,15 +28,6 @@
 #undef min
 #undef max
 
-// Функция для удаления пробельных символов с начала и конца строки.
-std::string Trim(const std::string& str) {
-    const std::string whitespace = " \t\n\r";
-    size_t start = str.find_first_not_of(whitespace);
-    if (start == std::string::npos)
-        return "";
-    size_t end = str.find_last_not_of(whitespace);
-    return str.substr(start, end - start + 1);
-}
 
 // Функция для надежного чтения из консоли
 std::string ReadConsoleInput() {
@@ -65,42 +59,6 @@ bool ReadThreeFloats(float& x, float& y, float& z) {
     return false;
 }
 
-// Проверяет, состоит ли строка только из шестнадцатеричных цифр.
-bool IsValidHex(const std::string& str) {
-    if (str.empty())
-        return false;
-    for (char c : str) {
-        if (!std::isxdigit(static_cast<unsigned char>(c)))
-            return false;
-    }
-    return true;
-}
-
-// Преобразует шестнадцатеричную строку в число типа uintptr_t (поддерживается префикс "0x").
-bool HexStringToAddress(const std::string& hexString, uintptr_t& address) {
-    std::string str = Trim(hexString);
-    if (str.size() >= 2 && (str.substr(0, 2) == "0x" || str.substr(0, 2) == "0X"))
-        str = str.substr(2);
-    if (!IsValidHex(str))
-        return false;
-    std::stringstream ss;
-    ss << std::hex << str;
-    ss >> address;
-    return true;
-}
-
-// Преобразует шестнадцатеричную строку в последовательность байтов.
-std::string HexStringToBytes(const std::string& hexStr) {
-    std::string bytes;
-    if (hexStr.length() % 2 != 0)
-        return "";
-    for (size_t i = 0; i < hexStr.length(); i += 2) {
-        std::string byteString = hexStr.substr(i, 2);
-        char byte = static_cast<char>(strtol(byteString.c_str(), nullptr, 16));
-        bytes.push_back(byte);
-    }
-    return bytes;
-}
 
 // Сканирует память указанного модуля в поиске шаблона с заданной маской,
 // возвращая все найденные адреса.
@@ -891,78 +849,18 @@ extern "C" {
     DEBUGCAMERA_API DWORD WINAPI MainThread(LPVOID lpParam) {
         static bool initialized = false;
         if (initialized) {
-            MessageBox(NULL, L"MainThread already initialized!", L"Info", MB_OK);
             return 0;
         }
         initialized = true;
 
-        // Подробное логирование инициализации
-        MessageBox(NULL, L"Starting DLL initialization...", L"Debug", MB_OK);
-
-        if (!AllocConsole()) {
-            DWORD error = GetLastError();
-            wchar_t errorMsg[256];
-            swprintf_s(errorMsg, L"AllocConsole failed! Error code: %lu", error);
-            MessageBox(NULL, errorMsg, L"Error", MB_ICONERROR);
+        if (!ConsoleUtils::Logger().Initialize("Debug Console for DebugCamera")) {
+            ConsoleUtils::LogError("Не удалось инициализировать консоль");
             return 1;
         }
-        SetConsoleTitle(L"Debug Console for DebugCamera");
-        
-        MessageBox(NULL, L"Console allocated successfully!", L"Debug", MB_OK);
 
-        // Перенаправление stdout
-        FILE* fpOut = nullptr;
-        errno_t result = freopen_s(&fpOut, "CONOUT$", "w", stdout);
-        if (result != 0) {
-            wchar_t errorMsg[256];
-            swprintf_s(errorMsg, L"Failed to redirect stdout! Error: %d", result);
-            MessageBox(NULL, errorMsg, L"Error", MB_ICONERROR);
-        } else {
-            MessageBox(NULL, L"stdout redirected successfully!", L"Debug", MB_OK);
-        }
-        
-        // Более надежное перенаправление stdin
-        FILE* fpIn = nullptr;
-        result = freopen_s(&fpIn, "CONIN$", "r", stdin);
-        if (result != 0) {
-            wchar_t errorMsg[256];
-            swprintf_s(errorMsg, L"Failed to redirect stdin! Error: %d", result);
-            MessageBox(NULL, errorMsg, L"Error", MB_ICONERROR);
-        } else {
-            MessageBox(NULL, L"stdin redirected successfully!", L"Debug", MB_OK);
-        }
-        
-        // Дополнительная настройка консоли для ввода
-        HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
-        HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
-        
-        if (hStdin == INVALID_HANDLE_VALUE || hStdout == INVALID_HANDLE_VALUE) {
-            MessageBox(NULL, L"Failed to get console handles", L"Error", MB_ICONERROR);
-            return 1;
-        }
-        
-        // Включаем режим ввода
-        DWORD mode;
-        if (!GetConsoleMode(hStdin, &mode)) {
-            MessageBox(NULL, L"Failed to get console mode", L"Error", MB_ICONERROR);
-        } else {
-            if (!SetConsoleMode(hStdin, mode | ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT | ENABLE_PROCESSED_INPUT)) {
-                MessageBox(NULL, L"Failed to set console mode", L"Error", MB_ICONERROR);
-            } else {
-                MessageBox(NULL, L"Console mode set successfully!", L"Debug", MB_OK);
-            }
-        }
-
-        // Настройка цветной консоли
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole, FOREGROUND_GREEN | FOREGROUND_INTENSITY);
-        
-        std::cout << "========================================" << std::endl;
-        std::cout << "   ОТЛАДКА КАМЕРЫ DARK SOULS REMASTERED   " << std::endl;
-        std::cout << "========================================" << std::endl;
-        SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
-        
-        MessageBox(NULL, L"Debug Camera Menu activated!", L"Debug", MB_OK);
+        ConsoleUtils::LogInfo("========================================");
+        ConsoleUtils::LogInfo("   ОТЛАДКА КАМЕРЫ DARK SOULS REMASTERED   ");
+        ConsoleUtils::LogInfo("========================================");
 
         // Более специфичный шаблон: три float (1.0f, 2.0f, 3.0f) и int magic (0x12345678).
         std::string currentPattern = "\x00\x00\x80\x3F"  // 1.0f
@@ -1069,7 +967,7 @@ extern "C" {
                 continue;
             }
             
-            std::string trimmed = Trim(input);
+            std::string trimmed = StringUtils::Trim(input);
             if (trimmed.empty()) {
                 Sleep(100);
                 continue;
@@ -1092,9 +990,9 @@ extern "C" {
                 std::cout << "Введите новую маску (например xxxxxxxxxxxxxxxx): ";
                 SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
                 newMask = ReadConsoleInput();
-                newHex = Trim(newHex);
-                newMask = Trim(newMask);
-                std::string newPattern = HexStringToBytes(newHex);
+                newHex = StringUtils::Trim(newHex);
+                newMask = StringUtils::Trim(newMask);
+                std::string newPattern = StringUtils::HexStringToBytes(newHex);
                 if (newPattern.empty() || newPattern.length() != newMask.length()) {
                     SetConsoleTextAttribute(hConsole, FOREGROUND_RED | FOREGROUND_INTENSITY);
                     std::cout << "[X] Неверный шаблон или маска." << std::endl;
