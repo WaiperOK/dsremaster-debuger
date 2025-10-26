@@ -47,6 +47,15 @@ namespace ConsoleUtils {
             SetConsoleMode(hConsole, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
         }
 
+        // Установка правильной кодировки для консоли (UTF-8)
+        SetConsoleCP(CP_UTF8);
+        SetConsoleOutputCP(CP_UTF8);
+
+        // Включение поддержки ANSI escape sequences для цветного вывода
+        if (GetConsoleMode(hConsole, &mode)) {
+            SetConsoleMode(hConsole, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+        }
+
         initialized = true;
         LogSuccess("Консоль инициализирована");
         return true;
