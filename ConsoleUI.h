@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <map>
 #include "MemoryManager.h"
 
 namespace ConsoleUI {
@@ -14,6 +15,11 @@ namespace ConsoleUI {
         uintptr_t selectedPlayerAddress;
         std::string currentPattern;
         std::string currentMask;
+        float moveSpeed;
+        float fov;
+        float timeScale;
+        bool hudHidden;
+        std::map<std::string, CameraCoordinates> bookmarks;
     };
 
     class ConsoleMenu {
@@ -37,6 +43,13 @@ namespace ConsoleUI {
         void CmdAutoScan();
         void CmdHelp();
         void CmdList();
+        void CmdStatus();
+        void CmdSpeed();
+        void CmdFov();
+        void CmdTimeScale();
+        void CmdSavePos();
+        void CmdGotoPos();
+        void CmdBookmarks();
 
         void DisplayHelpMessage();
     };

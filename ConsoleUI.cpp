@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iomanip>
 #include <conio.h>
+#include <limits>
 
 namespace ConsoleUI {
 
@@ -17,6 +18,10 @@ namespace ConsoleUI {
         context.selectedPlayerAddress = 0;
         context.currentPattern = "\x00\x00\x80\x3F\x00\x00\x00\x40\x00\x00\x40\x40";
         context.currentMask = "xxxxxxxxxxxx";
+        context.moveSpeed = 1.0f;
+        context.fov = 60.0f;
+        context.timeScale = 1.0f;
+        context.hudHidden = false;
     }
 
     ConsoleMenu::~ConsoleMenu() {
@@ -62,6 +67,13 @@ namespace ConsoleUI {
         std::cout << "  7  autoscan    - автоматическое многофазное сканирование" << std::endl;
         std::cout << "  8  list        - показать найденные адреса" << std::endl;
         std::cout << "  9  help        - справка" << std::endl;
+        std::cout << " 10  status      - текущее состояние debug menu" << std::endl;
+        std::cout << " 11  speed       - установить скорость камеры" << std::endl;
+        std::cout << " 12  fov         - установить FOV (30-140)" << std::endl;
+        std::cout << " 13  timescale   - установить множитель времени (0.1-3.0)" << std::endl;
+        std::cout << " 14  savepos     - сохранить текущую позицию как bookmark" << std::endl;
+        std::cout << " 15  gotopos     - перейти к bookmark позиции" << std::endl;
+        std::cout << " 16  bookmarks   - список bookmark-ов" << std::endl;
         std::cout << "  0  exit        - выход" << std::endl;
     }
 
@@ -89,6 +101,20 @@ namespace ConsoleUI {
             CmdList();
         } else if (cmd == "help" || cmd == "9") {
             CmdHelp();
+        } else if (cmd == "status" || cmd == "10") {
+            CmdStatus();
+        } else if (cmd == "speed" || cmd == "11") {
+            CmdSpeed();
+        } else if (cmd == "fov" || cmd == "12") {
+            CmdFov();
+        } else if (cmd == "timescale" || cmd == "13") {
+            CmdTimeScale();
+        } else if (cmd == "savepos" || cmd == "14") {
+            CmdSavePos();
+        } else if (cmd == "gotopos" || cmd == "15") {
+            CmdGotoPos();
+        } else if (cmd == "bookmarks" || cmd == "16") {
+            CmdBookmarks();
         } else if (cmd == "exit" || cmd == "0") {
             ConsoleUtils::LogSuccess("Выход из программы");
             exit(0);
@@ -135,6 +161,7 @@ namespace ConsoleUI {
             std::cin.ignore(10000, '\n');
             return;
         }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         CameraCoordinates coords = { x, y, z };
         if (WriteCameraCoordinates(addr, coords)) {
@@ -160,6 +187,7 @@ namespace ConsoleUI {
             std::cin.ignore(10000, '\n');
             return;
         }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         CameraCoordinates offset = { dx, dy, dz };
         if (AddCameraCoordinates(addr, offset)) {
@@ -259,6 +287,143 @@ namespace ConsoleUI {
         DisplayHelpMessage();
     }
 
+    void ConsoleMenu::CmdStatus() {
+        std::cout << "\n=== DEBUG MENU STATUS ===" << std::endl;
+        std::cout << "Speed: " << std::fixed << std::setprecision(2) << context.moveSpeed << std::endl;
+        std::cout << "FOV: " << std::fixed << std::setprecision(2) << context.fov << std::endl;
+        std::cout << "TimeScale: " << std::fixed << std::setprecision(2) << context.timeScale << std::endl;
+        std::cout << "HUD: " << (context.hudHidden ? "hidden" : "visible") << std::endl;
+        std::cout << "Bookmarks: " << context.bookmarks.size() << std::endl;
+    }
+
+    void ConsoleMenu::CmdSpeed() {
+        ConsoleUtils::LogInfo("Введите новую скорость камеры (0.1 - 50.0): ");
+        float value = 1.0f;
+        if (!(std::cin >> value)) {
+            ConsoleUtils::LogError("Ошибка ввода");
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            return;
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (value < 0.1f || value > 50.0f) {
+            ConsoleUtils::LogError("Скорость должна быть в диапазоне 0.1 - 50.0");
+            return;
+        }
+        context.moveSpeed = value;
+        ConsoleUtils::LogSuccess("Скорость обновлена");
+    }
+
+    void ConsoleMenu::CmdFov() {
+        ConsoleUtils::LogInfo("Введите новый FOV (30 - 140): ");
+        float value = 60.0f;
+        if (!(std::cin >> value)) {
+            ConsoleUtils::LogError("Ошибка ввода");
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            return;
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (value < 30.0f || value > 140.0f) {
+            ConsoleUtils::LogError("FOV должен быть в диапазоне 30 - 140");
+            return;
+        }
+        context.fov = value;
+        ConsoleUtils::LogSuccess("FOV обновлен");
+    }
+
+    void ConsoleMenu::CmdTimeScale() {
+        ConsoleUtils::LogInfo("Введите новый множитель времени (0.1 - 3.0): ");
+        float value = 1.0f;
+        if (!(std::cin >> value)) {
+            ConsoleUtils::LogError("Ошибка ввода");
+            std::cin.clear();
+            std::cin.ignore(10000, '\n');
+            return;
+        }
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        if (value < 0.1f || value > 3.0f) {
+            ConsoleUtils::LogError("TimeScale должен быть в диапазоне 0.1 - 3.0");
+            return;
+        }
+        context.timeScale = value;
+        ConsoleUtils::LogSuccess("TimeScale обновлен");
+    }
+
+    void ConsoleMenu::CmdSavePos() {
+        if (context.cameraAddresses.empty()) {
+            ConsoleUtils::LogError("Адреса камеры не найдены");
+            return;
+        }
+
+        uintptr_t addr = context.selectedCameraAddress ? context.selectedCameraAddress : context.cameraAddresses[0];
+        if (!MemoryUtils::IsPageAccessible(addr, sizeof(float) * 3)) {
+            ConsoleUtils::LogError("Адрес недоступен");
+            return;
+        }
+
+        CameraCoordinates coords = ReadCameraCoordinates(addr);
+        ConsoleUtils::LogInfo("Введите имя bookmark: ");
+        std::string name;
+        if (!std::getline(std::cin, name)) {
+            ConsoleUtils::LogError("Не удалось прочитать имя");
+            return;
+        }
+        name = StringUtils::Trim(name);
+        if (name.empty()) {
+            ConsoleUtils::LogError("Имя bookmark не может быть пустым");
+            return;
+        }
+
+        context.bookmarks[name] = coords;
+        ConsoleUtils::LogSuccess("Позиция сохранена в bookmark '" + name + "'");
+    }
+
+    void ConsoleMenu::CmdGotoPos() {
+        if (context.cameraAddresses.empty()) {
+            ConsoleUtils::LogError("Адреса камеры не найдены");
+            return;
+        }
+
+        ConsoleUtils::LogInfo("Введите имя bookmark: ");
+        std::string name;
+        if (!std::getline(std::cin, name)) {
+            ConsoleUtils::LogError("Не удалось прочитать имя");
+            return;
+        }
+        name = StringUtils::Trim(name);
+
+        auto it = context.bookmarks.find(name);
+        if (it == context.bookmarks.end()) {
+            ConsoleUtils::LogError("Bookmark не найден: " + name);
+            return;
+        }
+
+        uintptr_t addr = context.selectedCameraAddress ? context.selectedCameraAddress : context.cameraAddresses[0];
+        if (WriteCameraCoordinates(addr, it->second)) {
+            ConsoleUtils::LogSuccess("Переход к bookmark '" + name + "' выполнен");
+        } else {
+            ConsoleUtils::LogError("Не удалось применить bookmark");
+        }
+    }
+
+    void ConsoleMenu::CmdBookmarks() {
+        if (context.bookmarks.empty()) {
+            ConsoleUtils::LogInfo("Bookmark-ов пока нет");
+            return;
+        }
+
+        std::cout << "\n=== BOOKMARKS ===" << std::endl;
+        for (const auto& [name, coords] : context.bookmarks) {
+            std::cout << "  " << name << " -> ("
+                      << std::fixed << std::setprecision(2)
+                      << coords.x << ", " << coords.y << ", " << coords.z << ")" << std::endl;
+        }
+    }
+
     void ConsoleMenu::DisplayHelpMessage() {
         std::cout << "\n=== СПРАВКА ===" << std::endl;
         std::cout << "showpos    - Показать текущие координаты камеры" << std::endl;
@@ -269,6 +434,13 @@ namespace ConsoleUI {
         std::cout << "scan       - Сканировать память с текущим шаблоном" << std::endl;
         std::cout << "autoscan   - Многофазное сканирование (определяет адреса автоматически)" << std::endl;
         std::cout << "list       - Показать найденные адреса" << std::endl;
+        std::cout << "status     - Показать текущее состояние debug menu" << std::endl;
+        std::cout << "speed      - Установить скорость камеры" << std::endl;
+        std::cout << "fov        - Установить FOV камеры" << std::endl;
+        std::cout << "timescale  - Установить множитель времени" << std::endl;
+        std::cout << "savepos    - Сохранить текущую позицию в bookmark" << std::endl;
+        std::cout << "gotopos    - Перейти к сохраненному bookmark" << std::endl;
+        std::cout << "bookmarks  - Показать список bookmark-ов" << std::endl;
         std::cout << "exit       - Выход из программы" << std::endl;
     }
 }
