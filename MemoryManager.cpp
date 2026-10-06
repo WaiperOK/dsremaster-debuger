@@ -3,6 +3,7 @@
 #include "MemoryManager.h"
 #include "MemoryUtils.h"
 #include "ConsoleUtils.h"
+#include "StringUtils.h"
 #include <iostream>
 #include <cstring>
 #include <cmath>
@@ -11,7 +12,7 @@
 #undef max
 
 bool WriteCameraCoordinates(uintptr_t address, const CameraCoordinates& coords) {
-    if (!MemoryUtils::IsPageAccessible(address, sizeof(CameraCoordinates))) {
+    if (!MemoryUtils::IsPageAccessible(address, sizeof(float) * 3)) {
         ConsoleUtils::LogError("Адрес памяти недоступен: 0x" + std::to_string(address));
         return false;
     }
@@ -58,6 +59,18 @@ bool IsValidCameraAddress(uintptr_t address) {
     constexpr float MAX_COORD = 10000.0f;
     constexpr float MIN_DEVIATION = 0.001f;
 
-    return (std::abs(coords.x) < MAX_COORD && std::abs(coords.y) < MAX_COORD && std::abs(coords.z) < MAX_COORD &&
-            std::abs(coords.x) > MIN_DEVIATION && std::abs(coords.y) > MIN_DEVIATION && std::abs(coords.z) > MIN_DEVIATION);
+    const float values[3] = { coords.x, coords.y, coords.z };
+    bool hasSignal = false;
+    for (float value : values) {
+        // NaN and infinity compare false against everything, so reject them explicitly.
+        if (!std::isfinite(value) || std::abs(value) >= MAX_COORD) {
+            return false;
+        }
+        if (std::abs(value) > MIN_DEVIATION) {
+            hasSignal = true;
+        }
+    }
+
+    // A real camera may well sit at 0 on one axis; only an all zero triple is treated as empty.
+    return hasSignal;
 }

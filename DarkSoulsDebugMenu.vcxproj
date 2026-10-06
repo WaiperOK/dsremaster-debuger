@@ -164,6 +164,7 @@
     <ClInclude Include="MemoryUtils.h" />
     <ClInclude Include="PatternScanner.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PatternMatch.h" />
     <ClInclude Include="StringUtils.h" />
   </ItemGroup>
   <ItemGroup>

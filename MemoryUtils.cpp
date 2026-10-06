@@ -6,25 +6,43 @@ namespace MemoryUtils {
 
     MemoryProtection::~MemoryProtection() {
         if (oldProtect != 0) {
-            DWORD temp;
             RestorePageProtection(address, size, oldProtect);
         }
     }
 
-    bool IsPageAccessible(uintptr_t address, size_t size) {
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery(reinterpret_cast<LPVOID>(address), &mbi, sizeof(mbi)) == 0)
-            return false;
-
+    bool IsReadableRegion(const MEMORY_BASIC_INFORMATION& mbi) {
         if (mbi.State != MEM_COMMIT)
             return false;
 
-        if ((mbi.Protect & PAGE_READONLY) || (mbi.Protect & PAGE_READWRITE) ||
-            (mbi.Protect & PAGE_EXECUTE_READ) || (mbi.Protect & PAGE_EXECUTE_READWRITE)) {
-            return true;
-        }
+        // Guard pages raise an exception on the first access, no access pages always do.
+        if (mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD))
+            return false;
 
-        return false;
+        constexpr DWORD readable = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY |
+                                   PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE |
+                                   PAGE_EXECUTE_WRITECOPY;
+        return (mbi.Protect & readable) != 0;
+    }
+
+    bool IsPageAccessible(uintptr_t address, size_t size) {
+        if (size == 0)
+            size = 1;
+        if (address + size < address)
+            return false;
+
+        // A range can span several regions with different protections, so every one of them
+        // has to be readable, not just the one holding the first byte.
+        const uintptr_t end = address + size;
+        uintptr_t current = address;
+        while (current < end) {
+            MEMORY_BASIC_INFORMATION mbi;
+            if (VirtualQuery(reinterpret_cast<LPCVOID>(current), &mbi, sizeof(mbi)) == 0)
+                return false;
+            if (!IsReadableRegion(mbi))
+                return false;
+            current = reinterpret_cast<uintptr_t>(mbi.BaseAddress) + mbi.RegionSize;
+        }
+        return true;
     }
 
     bool IsValidAddress(uintptr_t address) {
@@ -59,6 +77,21 @@ namespace MemoryUtils {
         return true;
     }
 
+    // A C++ catch (...) does not catch access violations in MSVC unless /EHa is used, so a page
+    // that goes away between the accessibility check and the copy would crash the game.
+    // Structured exception handling does, and it must live in a function without C++ objects.
+    static bool GuardedCopy(void* destination, const void* source, size_t size) {
+        __try {
+            memcpy(destination, source, size);
+            return true;
+        } __except (GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION ||
+                            GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR
+                        ? EXCEPTION_EXECUTE_HANDLER
+                        : EXCEPTION_CONTINUE_SEARCH) {
+            return false;
+        }
+    }
+
     bool SafeReadMemory(uintptr_t address, void* buffer, size_t size) {
         if (!buffer || size == 0) {
             std::cerr << "[-] Ошибка: неверные параметры для чтения" << std::endl;
@@ -70,13 +103,11 @@ namespace MemoryUtils {
             return false;
         }
 
-        try {
-            memcpy(buffer, reinterpret_cast<void*>(address), size);
-            return true;
-        } catch (...) {
+        if (!GuardedCopy(buffer, reinterpret_cast<const void*>(address), size)) {
             std::cerr << "[-] Исключение при чтении памяти: 0x" << std::hex << address << std::endl;
             return false;
         }
+        return true;
     }
 
     bool SafeWriteMemory(uintptr_t address, const void* buffer, size_t size) {
@@ -95,14 +126,12 @@ namespace MemoryUtils {
             return false;
         }
 
-        try {
-            memcpy(reinterpret_cast<void*>(address), buffer, size);
-            RestorePageProtection(address, size, oldProtect);
-            return true;
-        } catch (...) {
+        const bool copied = GuardedCopy(reinterpret_cast<void*>(address), buffer, size);
+        RestorePageProtection(address, size, oldProtect);
+        if (!copied) {
             std::cerr << "[-] Исключение при записи памяти: 0x" << std::hex << address << std::endl;
-            RestorePageProtection(address, size, oldProtect);
             return false;
         }
+        return true;
     }
 }

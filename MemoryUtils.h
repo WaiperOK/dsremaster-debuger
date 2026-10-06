@@ -14,6 +14,9 @@ namespace MemoryUtils {
         ~MemoryProtection();
     };
 
+    // True when the region is committed and can be read without raising an exception.
+    bool IsReadableRegion(const MEMORY_BASIC_INFORMATION& mbi);
+    // True when the whole range [address, address + size) is readable.
     bool IsPageAccessible(uintptr_t address, size_t size);
     bool IsValidAddress(uintptr_t address);
     bool ChangePageProtection(uintptr_t address, size_t size, DWORD newProtect, DWORD& oldProtect);

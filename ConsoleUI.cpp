@@ -133,7 +133,7 @@ namespace ConsoleUI {
         uintptr_t addr = context.selectedCameraAddress ? context.selectedCameraAddress : context.cameraAddresses[0];
 
         if (!MemoryUtils::IsPageAccessible(addr, sizeof(float) * 3)) {
-            ConsoleUtils::LogError("Адрес недоступен: 0x" + std::to_string(addr));
+            ConsoleUtils::LogError("Адрес недоступен: " + StringUtils::FormatAddress(addr));
             return;
         }
 

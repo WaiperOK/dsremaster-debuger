@@ -2,6 +2,7 @@
 #include "AddressDetector.h"
 #include "MemoryManager.h"
 #include "MemoryUtils.h"
+#include "StringUtils.h"
 #include "ConsoleUtils.h"
 #include <windows.h>
 #include <psapi.h>
@@ -60,15 +61,18 @@ namespace AddressDetector {
         ConsoleUtils::LogInfo("Поиск потенциальных адресов...");
         ConsoleUtils::LogInfo("Диапазон сканирования: 0x" + std::to_string(startAddress) + " - 0x" + std::to_string(endAddress));
 
-        uintptr_t totalSize = endAddress - startAddress;
+        const uintptr_t totalSize = endAddress - startAddress;
         uintptr_t scanOffset = 0;
+        int lastReportedProgress = -1;
 
         for (uintptr_t addr = startAddress; addr < endAddress - 12; addr += 16) {
             scanOffset = addr - startAddress;
 
-            // Показываем прогресс каждые 10% сканирования
-            if (scanOffset % (totalSize / 10) == 0) {
-                int progress = (scanOffset * 100) / totalSize;
+            // Показываем прогресс каждые 10% сканирования. The old test (scanOffset % (totalSize / 10)
+            // == 0) almost never fired because the offset advances in steps of 16.
+            const int progress = static_cast<int>((scanOffset * 100) / totalSize);
+            if (progress / 10 != lastReportedProgress / 10 || lastReportedProgress < 0) {
+                lastReportedProgress = progress;
                 ConsoleUtils::LogInfo("Сканирование: " + std::to_string(progress) + "%");
             }
 

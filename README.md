@@ -42,6 +42,10 @@ msbuild DarkSoulsDebugMenu.sln /p:Configuration=Release /p:Platform=x64
 - Run `showpos`, `savepos`, `addpos`, `gotopos` to confirm bookmark flow.
 - Run `status`, adjust `speed`/`fov`/`timescale` values.
 
+## Safety note
+This is a single player debugging tool. Do not inject it while the game is connected to online
+services: anti-cheat or account actions may apply. Use an offline session.
+
 ## Security
 - Policy: `SECURITY.md`
 - Threat model: `docs/THREAT_MODEL.md`

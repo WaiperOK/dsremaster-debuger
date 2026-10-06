@@ -39,7 +39,9 @@ namespace StringUtils {
 
     std::string HexStringToBytes(const std::string& hexStr) {
         std::string bytes;
-        if (hexStr.length() % 2 != 0)
+        // An odd length or a non hex character used to be accepted: strtol silently turned the
+        // bad pair into 0 and the pattern matched the wrong bytes.
+        if (hexStr.length() % 2 != 0 || !IsValidHex(hexStr))
             return "";
         for (size_t i = 0; i < hexStr.length(); i += 2) {
             std::string byteString = hexStr.substr(i, 2);
@@ -47,5 +49,11 @@ namespace StringUtils {
             bytes.push_back(byte);
         }
         return bytes;
+    }
+
+    std::string FormatAddress(uintptr_t address) {
+        std::stringstream ss;
+        ss << "0x" << std::hex << std::uppercase << static_cast<unsigned long long>(address);
+        return ss.str();
     }
 }
